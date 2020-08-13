@@ -1,37 +1,60 @@
 from django import forms
-from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from django.db import transaction
 
 from users.models import CustomUser, Patient, Doctor
 
-USER = get_user_model()
 
+class PatientSignupForm(UserCreationForm):
+    
+    first_name = forms.CharField(required=True)
+    last_name = forms.CharField(required=True)
+    dob = forms.DateField(required=True)
+    address = forms.CharField(required=True)
+    phone = forms.CharField(required=True)
 
-class UserForm(UserCreationForm):
-    class Meta:
+    class Meta(UserCreationForm.Meta):
         model = CustomUser
         fields = ('email','first_name','last_name','password1','password2')
     
-    def clean_email(self):
-        if USER.objects.filter(email=self.cleaned_data['email']).exists():
-            raise forms.ValidationError("An account already exists with this email")
-        return self.cleaned_data['email']
-    
-    def clean(self):
-        password1 = self.cleaned_data['password1']
-        password2 = self.cleaned_data['password2']
-        if password1 != password2:
-            raise forms.ValidationError("Passwords do not match") 
+    @transaction.atomic
+    def save(self):
+        user = super().save(commit=False)
+        user.is_patient =  True
+        user.save()
+        patient = Patient.objects.create(user=user)
+        patient.first_name = self.cleaned_data.get('first_name')
+        patient.last_name = self.cleaned_data.get('last_name')
+        patient.dob = self.cleaned_data.get('dob')
+        patient.address = self.cleaned_data.get('address')
+        patient.phone = self.cleaned_data.get('phone')
+        patient.save()
+        return user
 
 
-class PatientSignupForm(forms.ModelForm):
-    class Meta:
-        model = Patient
-        fields = ('dob','address','phone')
+class DoctorSignupForm(UserCreationForm):
+    first_name = forms.CharField(required=True)
+    last_name = forms.CharField(required=True)
+    phone = forms.CharField(required=True)
+    specialty = forms.CharField(required=True)
+    availability = forms.CharField(required=True)
+
+    class Meta(UserCreationForm.Meta):
+        model = CustomUser
+        fields = ('email','first_name','last_name','password1','password2')
 
 
-class DoctorSignupForm(forms.ModelForm):
-    class Meta:
-        model = Doctor
-        fields = ('phone','specialty','availability')
+    @transaction.atomic
+    def save(self):
+        user = super().save(commit=False)
+        user.is_doctor = True
+        user.is_staff = True
+        user.save()
+        doctor = Doctor.objects.create(user=user)
+        doctor.first_name = self.cleaned_data.get('first_name')
+        doctor.last_name = self.cleaned_data.get('last_name')
+        doctor.phone = self.cleaned_data.get('phone')
+        doctor.specialty = self.cleaned_data.get('specialty')
+        doctor.availability = self.cleaned_data.get('availability')
+        doctor.save()
+        return user

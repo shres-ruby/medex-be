@@ -16,14 +16,13 @@ class CustomUser(AbstractUser):
     """
     username = None
     email = models.EmailField(unique=True)
+    is_patient = models.BooleanField(default=False)
+    is_doctor = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
-
-    is_patient = models.BooleanField(default=True)
-    is_doctor = models.BooleanField(default=False)
 
     def __str__(self):
         return self.email
@@ -34,9 +33,13 @@ class Patient(models.Model):
     related_name= 'patient_profile', primary_key=True)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    dob = models.DateField()
+    dob = models.DateField(null=True)
     address = models.CharField(max_length=200)
     phone = models.CharField(max_length=10)
+    
+
+    def __str__(self):
+        return self.first_name + ' ' + self.last_name
 
 
 class Doctor(models.Model):
@@ -47,4 +50,7 @@ class Doctor(models.Model):
     phone = models.CharField(max_length=10)
     specialty = models.CharField(max_length=100)
     availability = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.first_name + ' ' + self.last_name
 
