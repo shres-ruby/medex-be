@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from users.models import CustomUser, Patient, Doctor
+from users.models import CustomUser, Patient, Doctor, Prescription
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -31,6 +31,12 @@ class PatientSignupSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = Patient.objects.create_user(validated_data['user'])
         return user
+
+
+class PrescriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Prescription
+        fields = ('user', 'title', 'image', 'upload_date')
 
 # class LoginSerializer(serializers.Serializer):
 #     email = serializers.CharField(max_length= 100)

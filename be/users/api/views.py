@@ -1,11 +1,12 @@
 from rest_framework import generics, viewsets, permissions
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from users.models import CustomUser, Patient, Doctor
+from users.models import CustomUser, Patient, Doctor, Prescription
 from .serializers import (UserSerializer, PatientSerializer, DoctorSerializer,
-PatientSignupSerializer)
-from .permissions import IsSuperUser, IsDoctor
+PatientSignupSerializer, PrescriptionSerializer)
+from .permissions import IsOwnerOrReadOnly, IsSuperUser, IsDoctor
 
 
 class UserListView(viewsets.ModelViewSet):
@@ -20,7 +21,7 @@ class UserListView(viewsets.ModelViewSet):
 
 class UserDetailView(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication,]
-    permission_classes= [permissions.IsAuthenticated | IsSuperUser | IsDoctor]
+    permission_classes= [permissions.IsAuthenticated | IsOwnerOrReadOnly]
     serializer_class = UserSerializer
 
     def get_queryset(self):
@@ -37,8 +38,6 @@ class PatientListView(viewsets.ModelViewSet):
     
 
 class DoctorListView(viewsets.ModelViewSet):
-    authentication_classes = [TokenAuthentication,]
-    permission_classes=[permissions.IsAuthenticated, ]
     queryset = Doctor.objects.all()
     serializer_class = DoctorSerializer
 
@@ -55,3 +54,9 @@ class PatientSignupAPI(generics.GenericAPIView):
             context=self.get_serializer_context()).data,
             "token": TokenAuthentication.objects.create(user)
         })
+
+class PrescriptionView(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication,]
+    permission_classes= [permissions.IsAuthenticated, ]
+    queryset = Prescription.objects.all()
+    serializer_class = PrescriptionSerializer
