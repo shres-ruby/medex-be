@@ -62,7 +62,7 @@ class HealthProfile(models.Model):
     weight = models.CharField(max_length=20, blank=True)
     blood_pressure = models.CharField(max_length=20, blank=True)
     health_conditions = models.TextField(max_length=200, blank=True)
-    doctor = models.ForeignKey(Doctor, blank=True, null=True, on_delete=models.SET_NULL)
+    doctor = models.ManyToManyField(Doctor, blank=True)
 
     def __str__(self):
         return self.name
