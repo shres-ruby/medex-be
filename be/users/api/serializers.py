@@ -16,9 +16,28 @@ class PatientSerializer(serializers.ModelSerializer):
     
 
 class DoctorSerializer(serializers.ModelSerializer):
-    # user = UserSerializer(required = True)
-    # user = serializers.RelatedField(read_only=True, many= True)
 
     class Meta:
         model = Doctor
         fields = ('user','first_name','last_name','phone','specialty','availability')
+
+
+class PatientSignupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Patient
+        fields = ('user','first_name','last_name','dob','address','phone')
+        extra_kwargs = {'password': {'write_only': True}}
+    
+    def create(self, validated_data):
+        user = Patient.objects.create_user(validated_data['user'])
+        return user
+
+# class LoginSerializer(serializers.Serializer):
+#     email = serializers.CharField(max_length= 100)
+#     password = serializers.Charfield(max_length= 100)
+
+#     def validate(self, data):
+#         user = authenticate(**data)
+#         if user and user.is_active:
+#             return user
+#         raise serializers.ValidationError("Incorrect credentials")
