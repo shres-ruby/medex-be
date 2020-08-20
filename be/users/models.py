@@ -55,6 +55,19 @@ class Doctor(models.Model):
         return self.first_name + ' ' + self.last_name
 
 
+class HealthProfile(models.Model):
+    user = models.OneToOneField(Patient, on_delete= models.CASCADE, primary_key=True)
+    name = models.CharField(max_length=100)
+    height = models.CharField(max_length=20, blank=True)
+    weight = models.CharField(max_length=20, blank=True)
+    blood_pressure = models.CharField(max_length=20, blank=True)
+    health_conditions = models.TextField(max_length=200, blank=True)
+    doctor = models.ForeignKey(Doctor, blank=True, null=True, on_delete=models.SET_NULL)
+
+    def __str__(self):
+        return self.name
+
+
 class Prescription(models.Model):
     user = models.ForeignKey(Patient, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
