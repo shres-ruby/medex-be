@@ -30,6 +30,8 @@ class UserDetailView(viewsets.ModelViewSet):
             return CustomUser.objects.filter(id=user_id.first())
         return CustomUser.objects.none()
 
+
+
 class PatientListView(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication,]
     permission_classes=[IsSuperUser | IsDoctor ]

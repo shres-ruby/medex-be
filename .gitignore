@@ -3,3 +3,8 @@ venv/
 be/be/__pycache__/
 be/users/migrations/__pycache__/
 be/users/__pycache__/
+be/users/api/__pycache__/
+be/files/
+be/users/migrations/
+be/products/__pycache__/
+be/products/migrations/

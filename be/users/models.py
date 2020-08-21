@@ -63,6 +63,10 @@ class HealthProfile(models.Model):
     blood_pressure = models.CharField(max_length=20, blank=True)
     health_conditions = models.TextField(max_length=200, blank=True)
     doctor = models.ManyToManyField(Doctor, blank=True)
+    medicines = models.ManyToManyField('products.Medicines', blank=True)
+    ayurvedic = models.ManyToManyField('products.AyurvedicMedicines', blank=True)
+    supplements = models.ManyToManyField('products.HealthSupplements', blank=True)
+    essentials = models.ManyToManyField('products.DailyEssentials', blank=True)
 
     def __str__(self):
         return self.name
@@ -76,3 +80,4 @@ class Prescription(models.Model):
 
     def __str__(self):
         return self.title
+
