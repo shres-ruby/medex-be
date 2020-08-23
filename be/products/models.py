@@ -1,6 +1,13 @@
 from django.db import models
 
 
+class Category(models.Model):
+    title = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.title
+
+
 class ProductInfo(models.Model):
     """
     Holds common information shared by all types of products
@@ -8,37 +15,45 @@ class ProductInfo(models.Model):
     title = models.CharField(max_length=100)
     image = models.ImageField(upload_to='products', default='image-not-available.jpg')
     description = models.TextField(blank=True)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
     price = models.PositiveIntegerField()
 
     class Meta:
         abstract = True
 
+    def __str__(self):
+        return self.title
+
 
 class Medicines(ProductInfo):
-    def __str__(self):
-        return self.title
+    pass
 
 class AyurvedicMedicines(ProductInfo):
-    def __str__(self):
-        return self.title
+    pass
 
 class HealthSupplements(ProductInfo):
-    def __str__(self):
-        return self.title
+    pass
 
 class DailyEssentials(ProductInfo):
-    def __str__(self):
-        return self.title
-
-class Category(models.Model):
-    medicines = models.ForeignKey(Medicines, on_delete=models.CASCADE)
-    ayurvedic = models.ForeignKey(AyurvedicMedicines, on_delete=models.CASCADE)
-    supplements = models.ForeignKey(HealthSupplements, on_delete=models.CASCADE)
-    essentials = models.ForeignKey(DailyEssentials, on_delete=models.CASCADE)
+    pass
 
 
 class ShoppingCart(models.Model):
     user = models.OneToOneField('users.Patient', on_delete=models.CASCADE, primary_key=True)
-    items = models.ForeignKey(Category, on_delete=models.CASCADE)
+    medicines = models.ForeignKey(Medicines, on_delete=models.CASCADE, null=True, blank=True)
+    ayurvedic = models.ForeignKey(AyurvedicMedicines, on_delete=models.CASCADE, null=True, blank=True)
+    supplements = models.ForeignKey(HealthSupplements, on_delete=models.CASCADE, null=True, blank=True)
+    essentials = models.ForeignKey(DailyEssentials, on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.PositiveIntegerField(default=1)
+    purchased = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.user.first_name + ' ' + self.user.last_name
+    
+    def get_total(self):
+        med_total = self.medicines.price * self.quantity
+        ayur_total = self.ayurvedic.price * self.quantity
+        supp_total = self.supplements.price*self.quantity
+        essen_total = self.essentials.price*self.quantity
+        return med_total, ayur_total, supp_total, essen_total
