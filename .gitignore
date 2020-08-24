@@ -7,3 +7,4 @@ be/users/api/__pycache__/
 be/files/
 be/products/__pycache__/
 be/products/migrations/
+be/products/api/__pycache__/

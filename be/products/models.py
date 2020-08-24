@@ -56,4 +56,22 @@ class ShoppingCart(models.Model):
         ayur_total = self.ayurvedic.price * self.quantity
         supp_total = self.supplements.price*self.quantity
         essen_total = self.essentials.price*self.quantity
-        return med_total, ayur_total, supp_total, essen_total
+        total = med_total+ ayur_total+ supp_total+ essen_total
+        return total
+
+
+class Order(models.Model):
+    user = models.ForeignKey('users.Patient', on_delete=models.CASCADE)
+    orderitems = models.ManyToManyField(ShoppingCart)
+    order_placed = models.BooleanField(default=False)
+    created = models.DateField(auto_now=True)
+
+    def __str__(self):
+        return self.user.first_name + ' ' + self.user.last_name
+
+    def get_totals(self):
+        total = 0
+        for order_item in self.orderitems.all():
+            total += order_item.get_total()
+
+        return total
