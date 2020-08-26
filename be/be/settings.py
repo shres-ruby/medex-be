@@ -40,15 +40,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'django.contrib.sites',
+    'rest_framework',
     'corsheaders',
+    'rest_framework.authtoken',
+    'rest_auth',
+    'django.contrib.sites',
+    'django_filters',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'rest_auth.registration',
-    'rest_framework',
-    'rest_framework.authtoken',
-    'rest_auth',
+    
     'users',
     'products'
 ]
@@ -168,6 +170,9 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 APPEND_SLASH=False
 
-
+AUTHENTICATION_BACKENDS = (
+   "django.contrib.auth.backends.ModelBackend",
+   "allauth.account.auth_backends.AuthenticationBackend"
+)
 
 

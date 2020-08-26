@@ -3,14 +3,16 @@ from rest_framework import serializers
 from products.models import Category, Product, ShoppingCart, Order
 
 
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ('title',)
 
 
-
 class ProductSerializer(serializers.ModelSerializer):
+    category = serializers.ReadOnlyField(source='category.title')
+
     class Meta:
         model = Product
         fields = ('title','image','description','category','price')

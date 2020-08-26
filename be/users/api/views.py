@@ -2,19 +2,28 @@ from rest_framework import generics, viewsets, permissions
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
 from users.models import CustomUser, Patient, Doctor, Prescription
 from .serializers import (UserSerializer, PatientSerializer, DoctorSerializer,
 PatientSignupSerializer, PrescriptionSerializer)
 from .permissions import IsOwnerOrReadOnly, IsSuperUser, IsDoctor
+from .pagination import CustomPagination
 
 
 class UserListView(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, ]
-    permission_classes=[IsAuthenticated,]
+    # permission_classes=[IsAuthenticated,]
     # permission_classes=[IsSuperUser | IsDoctor]
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
+    pagination_class = CustomPagination
+    filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
+
+    search_fields = ['email']
+    order_fields = ['email']
+    filterset_fields = ['email', 'is_patient', 'is_doctor']
 
     def perform_create(self, serializer):
         serializer.save(user= self.request.user)
@@ -35,14 +44,24 @@ class UserDetailView(viewsets.ModelViewSet):
 
 class PatientListView(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication,]
-    permission_classes=[IsSuperUser | IsDoctor ]
+    # permission_classes=[IsSuperUser | IsDoctor ]
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
+    pagination_class = CustomPagination
+    filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
+
+    search_fields = ['first_name', 'last_name', 'phone']
+    filterset_fields = ['first_name', 'last_name', 'phone']
     
 
 class DoctorListView(viewsets.ModelViewSet):
     queryset = Doctor.objects.all()
     serializer_class = DoctorSerializer
+    pagination_class = CustomPagination
+    filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
+
+    search_fields = ['first_name', 'last_name', 'phone']
+    filterset_fields = ['first_name', 'last_name', 'phone']
 
 
 class PatientSignupAPI(generics.GenericAPIView):

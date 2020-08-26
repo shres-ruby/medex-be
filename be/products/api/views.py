@@ -6,11 +6,13 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
 from products.models import Category,Product, ShoppingCart, Order
 from .serializers import (CategorySerializer, ProductSerializer, 
 ShoppingCartSerializer, OrderSerializer)
-
+from .pagination import CustomPagination
 
 
 class CategoryListView(viewsets.ModelViewSet):
@@ -22,6 +24,12 @@ class ProductListView(viewsets.ModelViewSet):
     permissions_classes = [AllowAny]
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    pagination_class = CustomPagination
+    filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
+
+    search_fields = ['title','category__title','description']
+    order_fields = ['category']
+    filterset_fields = ['title']
 
 
 class OrderQuantityUpdateView(APIView):

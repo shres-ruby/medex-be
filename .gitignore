@@ -2,6 +2,7 @@ venv/
 .env
 be/be/__pycache__/
 be/users/migrations/
+be/users/migrations/0001_initial.py
 be/users/__pycache__/
 be/users/api/__pycache__/
 be/files/
