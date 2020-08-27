@@ -11,6 +11,8 @@ PatientSignupSerializer, PrescriptionSerializer)
 from .permissions import IsOwnerOrReadOnly, IsSuperUser, IsDoctor
 from .pagination import CustomPagination
 
+import logging
+
 
 class UserListView(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, ]

@@ -14,6 +14,8 @@ from .serializers import (CategorySerializer, ProductSerializer,
 ShoppingCartSerializer, OrderSerializer)
 from .pagination import CustomPagination
 
+import logging
+
 
 class CategoryListView(viewsets.ModelViewSet):
     queryset = Category.objects.all()

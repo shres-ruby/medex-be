@@ -175,4 +175,26 @@ AUTHENTICATION_BACKENDS = (
    "allauth.account.auth_backends.AuthenticationBackend"
 )
 
-
+LOGGING = {
+    'version' : 1,
+    'loggers' : {
+        'django' : {
+            'handlers' : ['file'],
+            'level' : 'DEBUG'
+        }
+    },
+    'handlers' : {
+        'file' : {
+            'level' : 'DEBUG',
+            'class' : 'logging.FileHandler',
+            'filename' : './logs/debug.log',
+            'formatter' : 'simple',
+        }
+    },
+    'formatters' : {
+        'simple' : {
+            'format' : '{levelname} {asctime} {module} {message}',
+            'style' : '{',
+        },
+    }
+}
