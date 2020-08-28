@@ -4,7 +4,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken.views import obtain_auth_token
 
 from .views import (UserListView, UserDetailView, PatientListView, 
-DoctorListView, PatientSignupAPI, PrescriptionView)
+DoctorListView, PrescriptionView, PatientSignupAPI)
 
 
 r = DefaultRouter()

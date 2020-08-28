@@ -1,9 +1,13 @@
 from rest_framework import generics, viewsets, permissions
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework import status
 
 from users.models import CustomUser, Patient, Doctor, Prescription
 from .serializers import (UserSerializer, PatientSerializer, DoctorSerializer,
@@ -76,11 +80,13 @@ class PatientSignupAPI(generics.GenericAPIView):
         return Response({
             "user" : UserSerializer(user, 
             context=self.get_serializer_context()).data,
-            "token": TokenAuthentication.objects.create(user)
+            "token": Token.objects.create(user=user)
         })
+
 
 class PrescriptionView(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
-    permission_classes= [IsAuthenticated]
+    # permission_classes= [IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser)
     queryset = Prescription.objects.all()
     serializer_class = PrescriptionSerializer
