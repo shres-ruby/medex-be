@@ -2,7 +2,8 @@ from django.db import transaction
 
 from rest_framework import serializers
 
-from users.models import CustomUser, Patient, Doctor, Prescription
+from users.models import (CustomUser, Patient, Doctor, Prescription,
+HealthProfile)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -63,12 +64,49 @@ class PrescriptionSerializer(serializers.ModelSerializer):
         model = Prescription
         fields = ('user', 'title', 'image', 'upload_date')
 
-# class LoginSerializer(serializers.Serializer):
-#     email = serializers.CharField(max_length= 100)
-#     password = serializers.Charfield(max_length= 100)
 
-#     def validate(self, data):
-#         user = authenticate(**data)
-#         if user and user.is_active:
-#             return user
-#         raise serializers.ValidationError("Incorrect credentials")
+class ProfileSerializer(serializers.ModelSerializer):
+    user = PatientSerializer(required = True)
+    user = serializers.EmailField(source='user.user.email')
+    class Meta:
+        model = HealthProfile
+        fields = ('user', 'name', 'height', 'weight', 'blood_pressure',
+        'health_conditions', 'doctor')
+        lookup_field = 'user'
+
+
+class EditProfileSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=False)
+    height = serializers.CharField(required=False)
+    weight = serializers.CharField(required=False)
+    blood_pressure = serializers.CharField(required=False)
+    health_conditions = serializers.CharField(required=False)
+    doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all(), required=False, many=True) 
+
+    class Meta:
+        model = Patient
+        fields = ('user', 'name', 'height', 'weight', 'blood_pressure',
+        'health_conditions', 'doctor')
+    
+    @transaction.atomic
+    def save(self):
+        user = Patient(
+            user = self.validated_data['user']
+        )
+        user.save()
+        profile = HealthProfile.objects.create(user=user)
+        profile.name = self.validated_data['name']
+        profile.height = self.validated_data['height']
+        profile.weight = self.validated_data['weight']
+        profile.blood_pressure = self.validated_data['blood_pressure']
+        profile.health_conditions = self.validated_data['health_conditions']
+        profile.save()
+        profile.doctor.set(self.validated_data['doctor'])
+        profile.save()
+        return user
+   
+
+class PrescriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Prescription
+        fields = ('user', 'title', 'image', 'upload_date')

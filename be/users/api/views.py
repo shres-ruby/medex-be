@@ -9,9 +9,9 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import status
 
-from users.models import CustomUser, Patient, Doctor, Prescription
+from users.models import CustomUser, Patient, Doctor, Prescription, HealthProfile
 from .serializers import (UserSerializer, PatientSerializer, DoctorSerializer,
-PatientSignupSerializer, PrescriptionSerializer)
+PatientSignupSerializer, PrescriptionSerializer, ProfileSerializer, EditProfileSerializer)
 from .permissions import IsOwnerOrReadOnly, IsSuperUser, IsDoctor
 from .pagination import CustomPagination
 
@@ -45,7 +45,6 @@ class UserDetailView(viewsets.ModelViewSet):
         if user_id:
             return CustomUser.objects.filter(id=user_id.first())
         return CustomUser.objects.none()
-
 
 
 class PatientListView(viewsets.ModelViewSet):
@@ -90,3 +89,32 @@ class PrescriptionView(viewsets.ModelViewSet):
     parser_classes = (MultiPartParser, FormParser)
     queryset = Prescription.objects.all()
     serializer_class = PrescriptionSerializer
+
+
+class ProfileView(viewsets.ModelViewSet):
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes= [IsAuthenticated]
+    queryset = HealthProfile.objects.all()
+    serializer_class = ProfileSerializer
+
+
+class ProfileDetailView(viewsets.ModelViewSet):
+    # authentication_classes = [TokenAuthentication,]
+    # permission_classes= [IsAuthenticated]
+    queryset = HealthProfile.objects.all()
+    serializer_class = ProfileSerializer
+    lookup_field = 'user__user__email'
+
+
+class EditProfile(generics.ListCreateAPIView):
+    queryset = HealthProfile.objects.all()
+    serializer_class = EditProfileSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response({
+            "user" : PatientSerializer(user, 
+            context=self.get_serializer_context()).data        
+        })
