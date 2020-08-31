@@ -11,7 +11,8 @@ from rest_framework import status
 
 from users.models import CustomUser, Patient, Doctor, Prescription, HealthProfile
 from .serializers import (UserSerializer, PatientSerializer, DoctorSerializer,
-PatientSignupSerializer, PrescriptionSerializer, ProfileSerializer, EditProfileSerializer)
+PatientSignupSerializer, DoctorSignupSerializer, PrescriptionSerializer, ProfileSerializer, 
+EditProfileSerializer)
 from .permissions import IsOwnerOrReadOnly, IsSuperUser, IsDoctor
 from .pagination import CustomPagination
 
@@ -71,6 +72,19 @@ class DoctorListView(viewsets.ModelViewSet):
 
 class PatientSignupAPI(generics.GenericAPIView):
     serializer_class = PatientSignupSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response({
+            "user" : UserSerializer(user, 
+            context=self.get_serializer_context()).data,
+            "token": Token.objects.create(user=user)
+        })
+
+class DoctorSignupAPI(generics.GenericAPIView):
+    serializer_class = DoctorSignupSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

@@ -57,7 +57,39 @@ class PatientSignupSerializer(serializers.ModelSerializer):
         patient.phone = self.validated_data['phone']
         patient.save()
         return user
-   
+
+
+class DoctorSignupSerializer(serializers.ModelSerializer):
+    password2 = serializers.CharField(style={'input_type':'password'}, write_only=True)
+    first_name = serializers.CharField(required=True)
+    last_name = serializers.CharField(required=True)
+    phone = serializers.CharField(required=True)
+    specialty = serializers.CharField(required=True)
+    availability = serializers.CharField(required=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ('email','password', 'password2','first_name','last_name','phone','specialty','availability')
+        extra_kwargs = {'password': {'write_only': True}}
+    
+    @transaction.atomic
+    def save(self):
+        user = CustomUser(
+            email= self.validated_data['email'],
+        )
+        password = self.validated_data['password']
+        user.is_doctor =  True
+        user.set_password(password)
+        user.save()
+        doctor = Doctor.objects.create(user=user)
+        doctor.first_name = self.validated_data['first_name']
+        doctor.last_name = self.validated_data['last_name']
+        doctor.phone = self.validated_data['phone']
+        doctor.specialty = self.validated_data['specialty']
+        doctor.availability = self.validated_data['availability']
+        doctor.save()
+        return user
+
 
 class PrescriptionSerializer(serializers.ModelSerializer):
     class Meta:
