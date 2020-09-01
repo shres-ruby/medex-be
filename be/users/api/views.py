@@ -1,4 +1,6 @@
-from rest_framework import generics, viewsets, permissions
+from django.shortcuts import get_object_or_404
+
+from rest_framework import generics, mixins, viewsets, permissions
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -50,7 +52,7 @@ class UserDetailView(viewsets.ModelViewSet):
 
 class PatientListView(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication,]
-    # permission_classes=[IsSuperUser | IsDoctor ]
+    permission_classes=[IsSuperUser | IsDoctor ]
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
     pagination_class = CustomPagination
@@ -106,15 +108,15 @@ class PrescriptionView(viewsets.ModelViewSet):
 
 
 class ProfileView(viewsets.ModelViewSet):
-    # authentication_classes = [TokenAuthentication]
-    # permission_classes= [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    permission_classes= [IsAuthenticated]
     queryset = HealthProfile.objects.all()
     serializer_class = ProfileSerializer
 
 
 class ProfileDetailView(viewsets.ModelViewSet):
-    # authentication_classes = [TokenAuthentication,]
-    # permission_classes= [IsAuthenticated]
+    authentication_classes = [TokenAuthentication,]
+    permission_classes= [IsAuthenticated]
     queryset = HealthProfile.objects.all()
     serializer_class = ProfileSerializer
     lookup_field = 'user__user__email'
@@ -132,3 +134,4 @@ class EditProfile(generics.ListCreateAPIView):
             "user" : PatientSerializer(user, 
             context=self.get_serializer_context()).data        
         })
+

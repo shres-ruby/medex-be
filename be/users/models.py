@@ -1,10 +1,14 @@
-"""
+""""
 This module creates a CustomUser class that removes the username
 field and makes the email field required and unique
 """
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.dispatch import receiver
+from django.urls import reverse
+from django_rest_passwordreset.signals import reset_password_token_created
+from django.core.mail import send_mail
 
 from users.managers import CustomUserManager
 
@@ -82,3 +86,22 @@ class Prescription(models.Model):
     def __str__(self):
         return self.title
 
+
+@receiver(reset_password_token_created)
+def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
+
+    email_plaintext_message = "localhost:3000{}{}".format(reverse('password_reset:reset-password-request'), reset_password_token.key)
+    token = reset_password_token.key
+    send_mail(
+        # title:
+        "Password Reset for {title}".format(title="Medex"),
+        # message:
+        "Please click the following link to reset your password : ",
+        # email_plaintext_message,
+        # from:
+        "noreply@somehost.local",
+        # to:
+        [reset_password_token.user.email],
+        #clickable link
+        html_message = '<p><a href="localhost:3000/api/password_reset/{token}">Click to reset your password</a></p>'
+    )

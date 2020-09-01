@@ -20,5 +20,6 @@ urlpatterns=[
     path('patientsignup/', PatientSignupAPI.as_view()),
     path('doctorsignup/', DoctorSignupAPI.as_view()),
     path('profile/<str:user__user__email>/', ProfileDetailView.as_view({'get':'retrieve', 'put':'update'})),
-    path('edit/', EditProfile.as_view())
+    path('edit/', EditProfile.as_view()),
+    path('password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
 ] + r.urls

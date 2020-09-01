@@ -1,6 +1,7 @@
 from django.db import transaction
 
 from rest_framework import serializers
+from rest_framework.fields import ListField
 
 from users.models import (CustomUser, Patient, Doctor, Prescription,
 HealthProfile)
@@ -91,15 +92,10 @@ class DoctorSignupSerializer(serializers.ModelSerializer):
         return user
 
 
-class PrescriptionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Prescription
-        fields = ('user', 'title', 'image', 'upload_date')
-
-
 class ProfileSerializer(serializers.ModelSerializer):
     user = PatientSerializer(required = True)
     user = serializers.EmailField(source='user.user.email')
+    doctor = serializers.StringRelatedField(many=True)
     class Meta:
         model = HealthProfile
         fields = ('user', 'name', 'height', 'weight', 'blood_pressure',
@@ -107,19 +103,35 @@ class ProfileSerializer(serializers.ModelSerializer):
         lookup_field = 'user'
 
 
+# class StringArrayField(ListField):
+#     """
+#     String representation of an array field.
+#     """
+#     def to_representation(self, obj):
+#         # obj = super().to_representation(self, obj)
+#         # convert list to string
+#         return ",".join([str(element) for element in obj])
+
+#     def to_internal_value(self, data):
+#         data = data.split(",")  # convert string to list
+#         return super().to_internal_value(self, data)
+
+
 class EditProfileSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(required=False)
-    height = serializers.CharField(required=False)
-    weight = serializers.CharField(required=False)
-    blood_pressure = serializers.CharField(required=False)
-    health_conditions = serializers.CharField(required=False)
-    doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all(), required=False, many=True) 
+    # user = serializers.EmailField(source='user.user.email')
+    name = serializers.CharField()
+    height = serializers.CharField(default=None)
+    weight = serializers.CharField(default=None)
+    blood_pressure = serializers.CharField(default=None)
+    health_conditions = serializers.CharField(default=None)
+    doctor = DoctorSerializer(default=None, many=True) 
+    # doctor = StringArrayField()
 
     class Meta:
         model = Patient
         fields = ('user', 'name', 'height', 'weight', 'blood_pressure',
         'health_conditions', 'doctor')
-    
+       
     @transaction.atomic
     def save(self):
         user = Patient(
@@ -142,3 +154,6 @@ class PrescriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Prescription
         fields = ('user', 'title', 'image', 'upload_date')
+
+
+    
