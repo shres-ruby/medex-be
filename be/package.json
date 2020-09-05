@@ -1,4 +1,6 @@
+{
 "scripts": {
     "publishToHeroku": "cd ../ && git subtree push --prefix backend heroku- 
     still-lowlands-70431 master || true"
  }
+}
