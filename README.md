@@ -6,6 +6,17 @@ This project attempts to simplify the process of ordering much needed medication
 
 # Installation
 
+Backend 
+
+virtualenv 
+venv\Scripts\activate
+pip install -r requirements.txt
+py manage.py runserver
+
+Frontend
+
+npm i
+npm start
 
 # Team member(s)
 
