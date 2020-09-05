@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.fields import ListField
 
 from users.models import (CustomUser, Patient, Doctor, Prescription,
-HealthProfile)
+HealthProfile, Appointment)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -12,19 +12,52 @@ class UserSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ('email','is_patient','is_doctor')
 
+
+class PrescriptionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Prescription
+        fields = "__all__"
+
+
 class PatientSerializer(serializers.ModelSerializer):
-    user = UserSerializer(required = True)
+    user = UserSerializer()
+    depth = 1
 
     class Meta:
         model = Patient
-        fields = ('user','first_name','last_name','dob','address','phone')
-    
+        fields = "__all__"
+
 
 class DoctorSerializer(serializers.ModelSerializer):
+    user = UserSerializer(required = True)
 
     class Meta:
         model = Doctor
-        fields = ('user','first_name','last_name','phone','specialty','availability')
+        fields = ('user','first_name', 'last_name', 'phone', 'specialty', 
+        'availability', 'appointments', 'profile')
+        extra_kwargs = {'profile': {'required': False},
+                        'appointments': {'required': False}}
+
+
+class AppointmentSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(queryset=Patient.objects.all(),slug_field='user__email')
+    doctor = serializers.SlugRelatedField(queryset=Doctor.objects.all(),slug_field='user__email')
+
+    class Meta: 
+        model = Appointment
+        fields = "__all__"
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    depth = 1
+    
+    class Meta:
+        model = HealthProfile
+        fields = ('user','full_name','height','weight','blood_pressure','health_conditions')
+        extra_kwargs = {'doctor': {'required': False}}
+        lookup_field = 'user'
 
 
 class PatientSignupSerializer(serializers.ModelSerializer):
@@ -35,11 +68,19 @@ class PatientSignupSerializer(serializers.ModelSerializer):
     dob = serializers.DateField(required=True)
     address = serializers.CharField(required=True)
     phone = serializers.CharField(required=True)
+    full_name = serializers.CharField(required=True)
+    height = serializers.CharField(required=False)
+    weight = serializers.CharField(required=False)
+    blood_pressure = serializers.CharField(required=False)
+    health_conditions = serializers.CharField(required=False)
+    doctor = serializers.CharField(required=False)
 
     class Meta:
         model = CustomUser
-        fields = ('email','password', 'password2','first_name','last_name','dob','address','phone')
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = ('email','password', 'password2','first_name',
+        'last_name','dob','address','phone','full_name','height', 
+        'weight','blood_pressure','health_conditions','doctor')
+        extra_kwargs = {'password': {'write_only': True}, 'password2': {'write_only': True}}
     
     @transaction.atomic
     def save(self):
@@ -50,6 +91,14 @@ class PatientSignupSerializer(serializers.ModelSerializer):
         user.is_patient =  True
         user.set_password(password)
         user.save()
+        profile = HealthProfile.objects.create(user=user)
+        profile.full_name = self.validated_data['full_name']
+        profile.height = self.validated_data['height']
+        profile.weight = self.validated_data['weight']
+        profile.blood_pressure = self.validated_data['blood_pressure']
+        profile.health_conditions = self.validated_data['health_conditions']
+        profile.doctor = self.validated_data['doctor']
+        profile.save()
         patient = Patient.objects.create(user=user)
         patient.first_name = self.validated_data['first_name']
         patient.last_name = self.validated_data['last_name']
@@ -92,68 +141,3 @@ class DoctorSignupSerializer(serializers.ModelSerializer):
         return user
 
 
-class ProfileSerializer(serializers.ModelSerializer):
-    user = PatientSerializer(required = True)
-    user = serializers.EmailField(source='user.user.email')
-    doctor = serializers.StringRelatedField(many=True)
-    class Meta:
-        model = HealthProfile
-        fields = ('user', 'name', 'height', 'weight', 'blood_pressure',
-        'health_conditions', 'doctor')
-        lookup_field = 'user'
-
-
-# class StringArrayField(ListField):
-#     """
-#     String representation of an array field.
-#     """
-#     def to_representation(self, obj):
-#         # obj = super().to_representation(self, obj)
-#         # convert list to string
-#         return ",".join([str(element) for element in obj])
-
-#     def to_internal_value(self, data):
-#         data = data.split(",")  # convert string to list
-#         return super().to_internal_value(self, data)
-
-
-class EditProfileSerializer(serializers.ModelSerializer):
-    # user = serializers.EmailField(source='user.user.email')
-    name = serializers.CharField()
-    height = serializers.CharField(default=None)
-    weight = serializers.CharField(default=None)
-    blood_pressure = serializers.CharField(default=None)
-    health_conditions = serializers.CharField(default=None)
-    doctor = DoctorSerializer(default=None, many=True) 
-    # doctor = StringArrayField()
-
-    class Meta:
-        model = Patient
-        fields = ('user', 'name', 'height', 'weight', 'blood_pressure',
-        'health_conditions', 'doctor')
-       
-    @transaction.atomic
-    def save(self):
-        user = Patient(
-            user = self.validated_data['user']
-        )
-        user.save()
-        profile = HealthProfile.objects.create(user=user)
-        profile.name = self.validated_data['name']
-        profile.height = self.validated_data['height']
-        profile.weight = self.validated_data['weight']
-        profile.blood_pressure = self.validated_data['blood_pressure']
-        profile.health_conditions = self.validated_data['health_conditions']
-        profile.save()
-        profile.doctor.set(self.validated_data['doctor'])
-        profile.save()
-        return user
-   
-
-class PrescriptionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Prescription
-        fields = ('user', 'title', 'image', 'upload_date')
-
-
-    

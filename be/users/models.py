@@ -13,6 +13,7 @@ from django.core.mail import send_mail
 from users.managers import CustomUserManager
 
 
+
 class CustomUser(AbstractUser):
     """
     Remove the username field and make the email field required
@@ -32,20 +33,6 @@ class CustomUser(AbstractUser):
         return self.email
 
 
-class Patient(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete= models.CASCADE,
-    related_name= 'patient_profile', primary_key=True)
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    dob = models.DateField(null=True)
-    address = models.CharField(max_length=200)
-    phone = models.CharField(max_length=10)
-    
-
-    def __str__(self):
-        return self.first_name + ' ' + self.last_name
-
-
 class Doctor(models.Model):
     user = models.OneToOneField(CustomUser, on_delete= models.CASCADE,
     related_name= 'doctor_profile', primary_key=True)
@@ -60,21 +47,30 @@ class Doctor(models.Model):
 
 
 class HealthProfile(models.Model):
-    user = models.OneToOneField(Patient, on_delete= models.CASCADE, primary_key=True)
-    name = models.CharField(max_length=100)
+    user = models.OneToOneField(CustomUser, on_delete= models.CASCADE, primary_key=True, default=4)
+    full_name = models.CharField(max_length=100)
     height = models.CharField(max_length=20, blank=True)
     weight = models.CharField(max_length=20, blank=True)
     blood_pressure = models.CharField(max_length=20, blank=True)
     health_conditions = models.TextField(max_length=200, blank=True)
-    doctor = models.ManyToManyField(Doctor, blank=True)
-
+    doctor = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
-        return self.name
+        return self.user.email
 
-    @property
-    def user__user__email(self):
-        return self.user.user.email
+   
+class Patient(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete= models.CASCADE,
+    related_name= 'patient_profile', primary_key=True)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    dob = models.DateField(null=True)
+    address = models.CharField(max_length=200)
+    phone = models.CharField(max_length=10)
+    
+
+    def __str__(self):
+        return self.first_name + ' ' + self.last_name
 
 
 class Prescription(models.Model):
@@ -105,3 +101,11 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
         #clickable link
         html_message = '<p><a href="localhost:3000/api/password_reset/{token}">Click to reset your password</a></p>'
     )
+
+
+class Appointment(models.Model):
+    user = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    date = models.DateField()
+    time = models.CharField(max_length=30)
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    purpose =  models.TextField()

@@ -11,10 +11,10 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import status
 
-from users.models import CustomUser, Patient, Doctor, Prescription, HealthProfile
+from users.models import CustomUser, Patient, Doctor, Prescription, HealthProfile, Appointment
 from .serializers import (UserSerializer, PatientSerializer, DoctorSerializer,
 PatientSignupSerializer, DoctorSignupSerializer, PrescriptionSerializer, ProfileSerializer, 
-EditProfileSerializer)
+AppointmentSerializer)
 from .permissions import IsOwnerOrReadOnly, IsSuperUser, IsDoctor
 from .pagination import CustomPagination
 
@@ -23,8 +23,8 @@ import logging
 
 class UserListView(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, ]
-    # permission_classes=[IsAuthenticated,]
-    # permission_classes=[IsSuperUser | IsDoctor]
+    permission_classes=[IsAuthenticated,]
+    permission_classes=[IsSuperUser | IsDoctor]
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
     pagination_class = CustomPagination
@@ -33,9 +33,6 @@ class UserListView(viewsets.ModelViewSet):
     search_fields = ['email']
     order_fields = ['email']
     filterset_fields = ['email', 'is_patient', 'is_doctor']
-
-    def perform_create(self, serializer):
-        serializer.save(user= self.request.user)
 
 
 class UserDetailView(viewsets.ModelViewSet):
@@ -82,7 +79,7 @@ class PatientSignupAPI(generics.GenericAPIView):
         return Response({
             "user" : UserSerializer(user, 
             context=self.get_serializer_context()).data,
-            "token": Token.objects.create(user=user)
+            "token": Token.objects.create(user=user)[1]
         })
 
 class DoctorSignupAPI(generics.GenericAPIView):
@@ -100,18 +97,21 @@ class DoctorSignupAPI(generics.GenericAPIView):
 
 
 class PrescriptionView(viewsets.ModelViewSet):
-    authentication_classes = [TokenAuthentication]
-    # permission_classes= [IsAuthenticated]
     parser_classes = (MultiPartParser, FormParser)
     queryset = Prescription.objects.all()
     serializer_class = PrescriptionSerializer
 
 
+class AppointmentView(viewsets.ModelViewSet):
+    queryset = Appointment.objects.all()
+    serializer_class = AppointmentSerializer
+
+
 class ProfileView(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes= [IsAuthenticated]
-    queryset = HealthProfile.objects.all()
     serializer_class = ProfileSerializer
+    queryset = HealthProfile.objects.all()
 
 
 class ProfileDetailView(viewsets.ModelViewSet):
@@ -119,19 +119,5 @@ class ProfileDetailView(viewsets.ModelViewSet):
     permission_classes= [IsAuthenticated]
     queryset = HealthProfile.objects.all()
     serializer_class = ProfileSerializer
-    lookup_field = 'user__user__email'
-
-
-class EditProfile(generics.ListCreateAPIView):
-    queryset = HealthProfile.objects.all()
-    serializer_class = EditProfileSerializer
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        return Response({
-            "user" : PatientSerializer(user, 
-            context=self.get_serializer_context()).data        
-        })
+    lookup_field = 'user__email'
 
